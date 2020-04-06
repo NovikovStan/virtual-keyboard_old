@@ -52,3 +52,18 @@ textarea {
 .spacebar {
     flex-basis: 490px;
 }
+
+.capslock-indicator-wrapper {
+    display: flex;
+}
+
+.capslock-indicator {
+    width: 16px;
+    border: 1px solid black;
+    border-radius: 50%;
+}
+
+.green {
+    background-color: green;
+}
+

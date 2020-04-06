@@ -1,4 +1,5 @@
 window.onload = function () {
+  let capsLock = false;
   let textField = drawTextField(document.querySelector("body"));
   let languageField = document.createElement("select");
   languageField.classList.add("language-field");
@@ -11,6 +12,15 @@ window.onload = function () {
   languageOption.textContent = "English";
   languageField.append(languageOption);
   document.querySelector("body").append(languageField);
+  let capsLockIndicatorWrapper = document.createElement('div');
+  capsLockIndicatorWrapper.classList.add('capslock-indicator-wrapper');
+  let capsLockIndicatorLabel = document.createElement('span');
+  capsLockIndicatorLabel.textContent = 'CapsLock:';
+  capsLockIndicatorWrapper.append(capsLockIndicatorLabel);
+  let capsLockIndicator = document.createElement('div');
+  capsLockIndicator.classList.add('capslock-indicator');
+  capsLockIndicatorWrapper.append(capsLockIndicator);
+  document.querySelector("body").append(capsLockIndicatorWrapper);
 
   let keyboard = drawKeyboard(
     document.querySelector("body"),
@@ -340,7 +350,11 @@ const keys = [
   {
     utility: true,
     size: "tripplesize",
-    action: function () {},
+    status: false,
+    action: function () {
+      this.status = !this.status;
+      document.querySelector(".capslock-indicator").classList.toggle("green");
+    },
     name: "Caps lock",
     code: "20",
   },
