@@ -33,7 +33,6 @@ window.onload = function () {
     });
   });
   document.addEventListener("keyup", (event) => {
-    console.log(event.keyCode, event.location);
     let keyboardKeys = document.querySelectorAll(".key");
     solveKeyUp(
       event.keyCode,
@@ -132,10 +131,17 @@ function solveMouseDown(key, language, textField, shift) {
           .classList.contains("green")
       ) {
         if (shift) {
-          textField.textContent =
-            textField.textContent.slice(0, textField.selectionStart) +
-            el[language].toLowerCase() +
-            textField.textContent.slice(textField.selectionStart);
+          if (el[`shift${language}`]) {
+            textField.textContent =
+              textField.textContent.slice(0, textField.selectionStart) +
+              el[`shift${language}`] +
+              textField.textContent.slice(textField.selectionStart);
+          } else {
+            textField.textContent =
+              textField.textContent.slice(0, textField.selectionStart) +
+              el[language].toLowerCase() +
+              textField.textContent.slice(textField.selectionStart);
+          }
         } else {
           textField.textContent =
             textField.textContent.slice(0, textField.selectionStart) +
@@ -226,10 +232,17 @@ function solveKeyDown(
                 .classList.contains("green")
             ) {
               if (shift) {
-                textField.textContent =
-                  textField.textContent.slice(0, textField.selectionStart) +
-                  el[language].toLowerCase() +
-                  textField.textContent.slice(textField.selectionStart);
+                if (el[`shift${language}`]) {
+                  textField.textContent =
+                    textField.textContent.slice(0, textField.selectionStart) +
+                    el[`shift${language}`] +
+                    textField.textContent.slice(textField.selectionStart);
+                } else {
+                  textField.textContent =
+                    textField.textContent.slice(0, textField.selectionStart) +
+                    el[language].toLowerCase() +
+                    textField.textContent.slice(textField.selectionStart);
+                }
               } else {
                 textField.textContent =
                   textField.textContent.slice(0, textField.selectionStart) +
@@ -290,7 +303,6 @@ function drawTextField(parent) {
   textField.setAttribute("cols", "130");
   textField.setAttribute("rows", "10");
   textField.setAttribute("spellcheck", "false");
-  // textField.setAttribute("disabled", "true");
   parent.append(textField);
   return textField;
 }
@@ -613,9 +625,10 @@ const keys = [
     name: "Enter",
     size: "tripplesize",
     action: function (textField) {
-      textField.textContent += String.fromCharCode(13);
+      let selectorPosition = textField.selectionStart;
+      textField.textContent = textField.textContent.slice(0, selectorPosition) + String.fromCharCode(13) + textField.textContent.slice(selectorPosition);
       textField.selectionStart = textField.selectionEnd =
-        textField.textContent.length;
+        selectorPosition + 1;
     },
     code: "13",
   },
