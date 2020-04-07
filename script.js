@@ -7,7 +7,6 @@ window.onfocus = function () {
 window.onload = function () {
   let body = document.querySelector("body");
   let textField = drawTextField(body);
-  console.log(localStorage.language)
   drawStatusBar(body);
   drawKeyboard(body, localStorage.language, textField);
   document.addEventListener("keydown", (event) => {
@@ -76,7 +75,7 @@ function drawLanguageField(parent) {
   languageOption.value = "en";
   languageOption.textContent = "English";
   languageField.append(languageOption);
-  localStorage.language && localStorage.language == "rus"
+  localStorage.getItem('language') && localStorage.language == "rus"
     ? (languageField.selectedIndex = 0)
     : (languageField.selectedIndex = 1);
   parent.append(languageField);
