@@ -1,5 +1,4 @@
 window.onload = function () {
-  let capsLock = false;
   let textField = drawTextField(document.querySelector("body"));
   let languageField = document.createElement("select");
   languageField.classList.add("language-field");
@@ -12,16 +11,19 @@ window.onload = function () {
   languageOption.textContent = "English";
   languageField.append(languageOption);
   document.querySelector("body").append(languageField);
-  let capsLockIndicatorWrapper = document.createElement('div');
-  capsLockIndicatorWrapper.classList.add('capslock-indicator-wrapper');
-  let capsLockIndicatorLabel = document.createElement('span');
-  capsLockIndicatorLabel.textContent = 'CapsLock:';
+  if (localStorage["language"])
+    languageField.selectedIndex = [...languageField.options].findIndex(
+      (el) => el.value == localStorage.language
+    );
+  let capsLockIndicatorWrapper = document.createElement("div");
+  capsLockIndicatorWrapper.classList.add("capslock-indicator-wrapper");
+  let capsLockIndicatorLabel = document.createElement("span");
+  capsLockIndicatorLabel.textContent = "CapsLock:";
   capsLockIndicatorWrapper.append(capsLockIndicatorLabel);
-  let capsLockIndicator = document.createElement('div');
-  capsLockIndicator.classList.add('capslock-indicator');
+  let capsLockIndicator = document.createElement("div");
+  capsLockIndicator.classList.add("capslock-indicator");
   capsLockIndicatorWrapper.append(capsLockIndicator);
   document.querySelector("body").append(capsLockIndicatorWrapper);
-
   let keyboard = drawKeyboard(
     document.querySelector("body"),
     languageField.selectedOptions[0].value,
@@ -36,6 +38,7 @@ window.onload = function () {
       textField
     );
   });
+
   document.addEventListener("keydown", (event) => {
     let keyboardKeys = document.querySelectorAll(".key");
     keys.forEach((el) => {
@@ -49,7 +52,8 @@ window.onload = function () {
           document.querySelector(".language-field").selectedOptions[0].value,
           keyboardKeys,
           textField,
-          event.location
+          event.location,
+          event.shiftKey
         );
       }
     });
@@ -59,12 +63,86 @@ window.onload = function () {
     solveKeyUp(
       event.keyCode,
       document.querySelector(".language-field").selectedOptions[0].value,
-      keyboardKeys
+      keyboardKeys,
+      event.location
     );
   });
 };
 
-function solveKeyDown(keyCode, language, keyboardKeys, textField, location) {
+function solveMouseDown(key, language, textField, shift) {
+  textField.blur();
+  textField.scrollTop = textField.scrollHeight;
+  key.classList.add("highlighted");
+  keys.forEach((el) => {
+    if (el.name == key.querySelector(".key-value").textContent) {
+      el.action(textField);
+      if (el.name == "LShift" && event.altKey) {
+        document.querySelector(".language-field").selectedIndex =
+          (document.querySelector(".language-field").selectedIndex + 1) % 2;
+        document.querySelector(".keyboard").remove();
+        drawKeyboard(
+          document.querySelector("body"),
+          document.querySelector(".language-field").selectedOptions[0].value,
+          textField
+        );
+        localStorage.setItem(
+          "language",
+          document.querySelector(".language-field").selectedOptions[0].value
+        );
+        [...document.querySelectorAll(".key-value")]
+          .find((el) => el.textContent == "LShift")
+          .closest(".key")
+          .classList.add("highlighted");
+      }
+    } else if (el[language] == key.querySelector(".key-value").textContent) {
+      let selectorPosition = textField.selectionEnd;
+      if (
+        document
+          .querySelector(".capslock-indicator")
+          .classList.contains("green")
+      ) {
+        textField.textContent =
+          textField.textContent.slice(0, textField.selectionStart) +
+          el[language].toUpperCase() +
+          textField.textContent.slice(textField.selectionStart);
+      } else if (shift) {
+        if (el[`shift${language}`]) {
+          textField.textContent =
+            textField.textContent.slice(0, textField.selectionStart) +
+            el[`shift${language}`] +
+            textField.textContent.slice(textField.selectionStart);
+        } else {
+          textField.textContent =
+            textField.textContent.slice(0, textField.selectionStart) +
+            el[language].toUpperCase() +
+            textField.textContent.slice(textField.selectionStart);
+        }
+      } else {
+        textField.textContent =
+          textField.textContent.slice(0, textField.selectionStart) +
+          el[language] +
+          textField.textContent.slice(textField.selectionStart);
+      }
+      textField.selectionEnd = textField.selectionStart = selectorPosition + 1;
+    }
+  });
+}
+
+function solveMouseUp(key) {
+  key.classList.remove("highlighted");
+  document.querySelector("textarea").focus();
+}
+
+function solveKeyDown(
+  keyCode,
+  language,
+  keyboardKeys,
+  textField,
+  location,
+  shift
+) {
+  textField.blur();
+  textField.scrollTop = textField.scrollHeight;
   keys.forEach((el) => {
     if (el.code == keyCode) {
       keyboardKeys.forEach((elem) => {
@@ -75,17 +153,61 @@ function solveKeyDown(keyCode, language, keyboardKeys, textField, location) {
           ) {
             elem.classList.add("highlighted");
             el.action(textField);
+            if (el.location == 1 && el.name == "LShift" && event.altKey) {
+              document.querySelector(".language-field").selectedIndex =
+                (document.querySelector(".language-field").selectedIndex + 1) %
+                2;
+              document.querySelector(".keyboard").remove();
+              drawKeyboard(
+                document.querySelector("body"),
+                document.querySelector(".language-field").selectedOptions[0]
+                  .value,
+                textField
+              );
+              localStorage.setItem(
+                "language",
+                document.querySelector(".language-field").selectedOptions[0]
+                  .value
+              );
+              [...document.querySelectorAll(".key-value")]
+                .find((el) => el.textContent == "LShift")
+                .closest(".key")
+                .classList.add("highlighted");
+            }
           }
         } else {
           if (elem.querySelector(".key-value").textContent == el[language]) {
             elem.classList.add("highlighted");
             let selectorPosition = textField.selectionEnd;
-            textField.textContent =
-              textField.textContent.slice(0, textField.selectionStart) +
-              el[language] +
-              textField.textContent.slice(textField.selectionStart);
-            textField.selectionEnd = selectorPosition + 1;
-            textField.selectionStart = selectorPosition + 1;
+            if (
+              document
+                .querySelector(".capslock-indicator")
+                .classList.contains("green")
+            ) {
+              textField.textContent =
+                textField.textContent.slice(0, textField.selectionStart) +
+                el[language].toUpperCase() +
+                textField.textContent.slice(textField.selectionStart);
+            } else if (shift) {
+              if (el[`shift${language}`]) {
+                textField.textContent =
+                  textField.textContent.slice(0, textField.selectionStart) +
+                  el[`shift${language}`] +
+                  textField.textContent.slice(textField.selectionStart);
+              } else {
+                textField.textContent =
+                  textField.textContent.slice(0, textField.selectionStart) +
+                  el[language].toUpperCase() +
+                  textField.textContent.slice(textField.selectionStart);
+              }
+            } else {
+              textField.textContent =
+                textField.textContent.slice(0, textField.selectionStart) +
+                el[language] +
+                textField.textContent.slice(textField.selectionStart);
+            }
+            textField.selectionEnd = textField.selectionStart =
+              selectorPosition + 1;
           }
         }
       });
@@ -94,11 +216,15 @@ function solveKeyDown(keyCode, language, keyboardKeys, textField, location) {
 }
 
 function solveKeyUp(keyCode, language, keyboardKeys, location) {
+  document.querySelector("textarea").focus();
   keys.forEach((el) => {
     if (el.code == keyCode) {
       keyboardKeys.forEach((elem) => {
         if (el.utility) {
-          if (elem.querySelector(".key-value").textContent == el.name) {
+          if (
+            elem.querySelector(".key-value").textContent == el.name &&
+            (!el.location || el.location == location)
+          ) {
             elem.classList.remove("highlighted");
           }
         } else {
@@ -115,6 +241,7 @@ function drawTextField(parent) {
   let textField = document.createElement("textarea");
   textField.setAttribute("cols", "100");
   textField.setAttribute("rows", "10");
+  textField.setAttribute("spellcheck", "false");
   // textField.setAttribute("disabled", "true");
   parent.append(textField);
   return textField;
@@ -145,6 +272,17 @@ function drawKeyboard(parent, language, inputArea) {
     }
     key.append(keyValue);
     keyboard.append(key);
+    key.addEventListener("mousedown", (event) =>
+      solveMouseDown(
+        event.target.closest(".key"),
+        language,
+        inputArea,
+        event.shiftKey
+      )
+    );
+    key.addEventListener("mouseup", (event) =>
+      solveMouseUp(event.target.closest(".key"))
+    );
   });
   parent.append(keyboard);
   return keyboard;
@@ -254,14 +392,11 @@ const keys = [
     utility: true,
     size: "doublesize",
     action: function (textField) {
-      if (textField.selectionStart) {
-        let selectorPosition = textField.selectionStart;
-        textField.textContent =
-          textField.textContent.slice(0, textField.selectionStart - 1) +
-          textField.textContent.slice(textField.selectionStart);
-        textField.selectionStart = textField.selectionEnd =
-          selectorPosition - 1;
-      }
+      let selectorPosition = textField.selectionStart;
+      textField.textContent =
+        textField.textContent.slice(0, textField.selectionStart - 1) +
+        textField.textContent.slice(textField.selectionStart);
+      textField.selectionStart = textField.selectionEnd = selectorPosition - 1;
     },
   },
   {
@@ -334,6 +469,7 @@ const keys = [
     shiften: "{",
     code: "219",
   },
+
   {
     rus: "ъ",
     en: "]",
@@ -343,7 +479,13 @@ const keys = [
   {
     utility: true,
     size: "doublesize",
-    action: function () {},
+    action: function (textField) {
+      let selectorPosition = textField.selectionStart;
+      textField.textContent =
+        textField.textContent.slice(0, textField.selectionStart) +
+        textField.textContent.slice(textField.selectionStart + 1);
+      textField.selectionStart = textField.selectionEnd = selectorPosition;
+    },
     name: "Del",
     code: "46",
   },
@@ -419,7 +561,11 @@ const keys = [
     utility: true,
     name: "Enter",
     size: "tripplesize",
-    action: function () {},
+    action: function (textField) {
+      textField.textContent += String.fromCharCode(13);
+      textField.selectionStart = textField.selectionEnd =
+        textField.textContent.length;
+    },
     code: "13",
   },
   {

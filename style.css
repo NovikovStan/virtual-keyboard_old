@@ -1,6 +1,15 @@
+body {
+    -webkit-user-select: none;
+}
+
 textarea {
     resize: none;
 }
+
+textarea:focus {
+    outline: none;
+}
+
 .keyboard {
     width: 950px;
     display: flex;
@@ -27,6 +36,7 @@ textarea {
 .key-shift-value {
     padding-left: 10%;
     font-size: 14px;
+    -webkit-user-select: none;
 }
 
 .key-value {
@@ -35,6 +45,7 @@ textarea {
     justify-content: center;
     font-size: 18px;
     margin: 0 auto;   
+    -webkit-user-select: none;
 }
 
 .highlighted {
