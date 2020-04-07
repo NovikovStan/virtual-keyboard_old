@@ -8,7 +8,7 @@ window.onload = function () {
   let body = document.querySelector("body");
   let textField = drawTextField(body);
   drawStatusBar(body);
-  drawKeyboard(body, localStorage.language, textField);
+  drawKeyboard(body, localStorage.getItem('language'), textField);
   document.addEventListener("keydown", (event) => {
     let keyboardKeys = document.querySelectorAll(".key");
     keys.forEach((el) => {
@@ -75,9 +75,11 @@ function drawLanguageField(parent) {
   languageOption.value = "en";
   languageOption.textContent = "English";
   languageField.append(languageOption);
-  localStorage.getItem('language') && localStorage.language == "rus"
+  
+  localStorage.getItem('language') && localStorage.getItem('language') == "rus"
     ? (languageField.selectedIndex = 0)
     : (languageField.selectedIndex = 1);
+  localStorage.setItem('language', languageField.selectedOptions[0].value);
   parent.append(languageField);
   languageField.addEventListener("change", (event) => {
     if (document.querySelector(".keyboard"))
