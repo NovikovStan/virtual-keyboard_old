@@ -48,6 +48,17 @@ textarea:focus {
 
 .highlighted {
     background-color: darkblue;
+    animation-name: hl;
+    animation-duration: 0.5s;
+}
+
+@keyframes hl {
+    0% {
+        border-radius: 5px;
+    }
+    100% {
+        border-radius: 50%;
+    }
 }
 
 .doublesize {

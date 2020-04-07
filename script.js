@@ -7,12 +7,9 @@ window.onfocus = function () {
 window.onload = function () {
   let body = document.querySelector("body");
   let textField = drawTextField(body);
+  console.log(localStorage.language)
   drawStatusBar(body);
-  drawKeyboard(
-    body,
-    localStorage.language,
-    textField
-  );
+  drawKeyboard(body, localStorage.language, textField);
   document.addEventListener("keydown", (event) => {
     let keyboardKeys = document.querySelectorAll(".key");
     keys.forEach((el) => {
@@ -45,11 +42,12 @@ window.onload = function () {
 
 function drawStatusBar(parent) {
   let statusBar = document.createElement("div");
-  statusBar.classList.add('status-bar');
+  statusBar.classList.add("status-bar");
   drawCapsLockIndicator(statusBar);
   drawLanguageField(statusBar);
-  let hint = document.createElement('div');
-  hint.textContent = 'Press Alt + left Shift to change language or select manually.';
+  let hint = document.createElement("div");
+  hint.textContent =
+    "Press Alt + left Shift to change language or select manually.";
   statusBar.append(hint);
   parent.append(statusBar);
   return statusbar;
@@ -67,7 +65,7 @@ function drawCapsLockIndicator(parent) {
   parent.append(capsLockIndicatorWrapper);
 }
 
-function drawLanguageField(parent, language = "rus") {
+function drawLanguageField(parent) {
   let languageField = document.createElement("select");
   languageField.classList.add("language-field");
   let languageOption = document.createElement("option");
@@ -78,7 +76,7 @@ function drawLanguageField(parent, language = "rus") {
   languageOption.value = "en";
   languageOption.textContent = "English";
   languageField.append(languageOption);
-  language == "rus"
+  localStorage.language && localStorage.language == "rus"
     ? (languageField.selectedIndex = 0)
     : (languageField.selectedIndex = 1);
   parent.append(languageField);
@@ -626,9 +624,11 @@ const keys = [
     size: "tripplesize",
     action: function (textField) {
       let selectorPosition = textField.selectionStart;
-      textField.textContent = textField.textContent.slice(0, selectorPosition) + String.fromCharCode(13) + textField.textContent.slice(selectorPosition);
-      textField.selectionStart = textField.selectionEnd =
-        selectorPosition + 1;
+      textField.textContent =
+        textField.textContent.slice(0, selectorPosition) +
+        String.fromCharCode(13) +
+        textField.textContent.slice(selectorPosition);
+      textField.selectionStart = textField.selectionEnd = selectorPosition + 1;
     },
     code: "13",
   },
