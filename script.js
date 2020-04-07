@@ -1,44 +1,18 @@
+window.onfocus = function () {
+  document
+    .querySelectorAll(".key")
+    .forEach((el) => el.classList.remove("highlighted"));
+};
+
 window.onload = function () {
-  let textField = drawTextField(document.querySelector("body"));
-  let languageField = document.createElement("select");
-  languageField.classList.add("language-field");
-  let languageOption = document.createElement("option");
-  languageOption.value = "rus";
-  languageOption.textContent = "Russian";
-  languageField.append(languageOption);
-  languageOption = document.createElement("option");
-  languageOption.value = "en";
-  languageOption.textContent = "English";
-  languageField.append(languageOption);
-  document.querySelector("body").append(languageField);
-  if (localStorage["language"])
-    languageField.selectedIndex = [...languageField.options].findIndex(
-      (el) => el.value == localStorage.language
-    );
-  let capsLockIndicatorWrapper = document.createElement("div");
-  capsLockIndicatorWrapper.classList.add("capslock-indicator-wrapper");
-  let capsLockIndicatorLabel = document.createElement("span");
-  capsLockIndicatorLabel.textContent = "CapsLock:";
-  capsLockIndicatorWrapper.append(capsLockIndicatorLabel);
-  let capsLockIndicator = document.createElement("div");
-  capsLockIndicator.classList.add("capslock-indicator");
-  capsLockIndicatorWrapper.append(capsLockIndicator);
-  document.querySelector("body").append(capsLockIndicatorWrapper);
-  let keyboard = drawKeyboard(
-    document.querySelector("body"),
-    languageField.selectedOptions[0].value,
+  let body = document.querySelector("body");
+  let textField = drawTextField(body);
+  drawStatusBar(body);
+  drawKeyboard(
+    body,
+    localStorage.language,
     textField
   );
-
-  languageField.addEventListener("change", (event) => {
-    keyboard.remove();
-    keyboard = drawKeyboard(
-      document.querySelector("body"),
-      languageField.selectedOptions[0].value,
-      textField
-    );
-  });
-
   document.addEventListener("keydown", (event) => {
     let keyboardKeys = document.querySelectorAll(".key");
     keys.forEach((el) => {
@@ -59,6 +33,7 @@ window.onload = function () {
     });
   });
   document.addEventListener("keyup", (event) => {
+    console.log(event.keyCode, event.location);
     let keyboardKeys = document.querySelectorAll(".key");
     solveKeyUp(
       event.keyCode,
@@ -68,6 +43,61 @@ window.onload = function () {
     );
   });
 };
+
+function drawStatusBar(parent) {
+  let statusBar = document.createElement("div");
+  statusBar.classList.add('status-bar');
+  drawCapsLockIndicator(statusBar);
+  drawLanguageField(statusBar);
+  let hint = document.createElement('div');
+  hint.textContent = 'Press Alt + left Shift to change language or select manually.';
+  statusBar.append(hint);
+  parent.append(statusBar);
+  return statusbar;
+}
+
+function drawCapsLockIndicator(parent) {
+  let capsLockIndicatorWrapper = document.createElement("div");
+  capsLockIndicatorWrapper.classList.add("capslock-indicator-wrapper");
+  let capsLockIndicatorLabel = document.createElement("span");
+  capsLockIndicatorLabel.textContent = "CapsLock:";
+  capsLockIndicatorWrapper.append(capsLockIndicatorLabel);
+  let capsLockIndicator = document.createElement("div");
+  capsLockIndicator.classList.add("capslock-indicator");
+  capsLockIndicatorWrapper.append(capsLockIndicator);
+  parent.append(capsLockIndicatorWrapper);
+}
+
+function drawLanguageField(parent, language = "rus") {
+  let languageField = document.createElement("select");
+  languageField.classList.add("language-field");
+  let languageOption = document.createElement("option");
+  languageOption.value = "rus";
+  languageOption.textContent = "Russian";
+  languageField.append(languageOption);
+  languageOption = document.createElement("option");
+  languageOption.value = "en";
+  languageOption.textContent = "English";
+  languageField.append(languageOption);
+  language == "rus"
+    ? (languageField.selectedIndex = 0)
+    : (languageField.selectedIndex = 1);
+  parent.append(languageField);
+  languageField.addEventListener("change", (event) => {
+    if (document.querySelector(".keyboard"))
+      document.querySelector(".keyboard").remove();
+    drawKeyboard(
+      document.querySelector("body"),
+      languageField.selectedOptions[0].value,
+      document.querySelector("textarea")
+    );
+    localStorage.setItem(
+      "language",
+      document.querySelector(".language-field").selectedOptions[0].value
+    );
+  });
+  return languageField;
+}
 
 function solveMouseDown(key, language, textField, shift) {
   textField.blur();
@@ -101,10 +131,17 @@ function solveMouseDown(key, language, textField, shift) {
           .querySelector(".capslock-indicator")
           .classList.contains("green")
       ) {
-        textField.textContent =
-          textField.textContent.slice(0, textField.selectionStart) +
-          el[language].toUpperCase() +
-          textField.textContent.slice(textField.selectionStart);
+        if (shift) {
+          textField.textContent =
+            textField.textContent.slice(0, textField.selectionStart) +
+            el[language].toLowerCase() +
+            textField.textContent.slice(textField.selectionStart);
+        } else {
+          textField.textContent =
+            textField.textContent.slice(0, textField.selectionStart) +
+            el[language].toUpperCase() +
+            textField.textContent.slice(textField.selectionStart);
+        }
       } else if (shift) {
         if (el[`shift${language}`]) {
           textField.textContent =
@@ -173,6 +210,10 @@ function solveKeyDown(
                 .find((el) => el.textContent == "LShift")
                 .closest(".key")
                 .classList.add("highlighted");
+              [...document.querySelectorAll(".key-value")]
+                .find((el) => el.textContent == "LAlt")
+                .closest(".key")
+                .classList.add("highlighted");
             }
           }
         } else {
@@ -184,10 +225,17 @@ function solveKeyDown(
                 .querySelector(".capslock-indicator")
                 .classList.contains("green")
             ) {
-              textField.textContent =
-                textField.textContent.slice(0, textField.selectionStart) +
-                el[language].toUpperCase() +
-                textField.textContent.slice(textField.selectionStart);
+              if (shift) {
+                textField.textContent =
+                  textField.textContent.slice(0, textField.selectionStart) +
+                  el[language].toLowerCase() +
+                  textField.textContent.slice(textField.selectionStart);
+              } else {
+                textField.textContent =
+                  textField.textContent.slice(0, textField.selectionStart) +
+                  el[language].toUpperCase() +
+                  textField.textContent.slice(textField.selectionStart);
+              }
             } else if (shift) {
               if (el[`shift${language}`]) {
                 textField.textContent =
@@ -215,7 +263,7 @@ function solveKeyDown(
   });
 }
 
-function solveKeyUp(keyCode, language, keyboardKeys, location) {
+function solveKeyUp(keyCode, language, keyboardKeys, location = 0) {
   document.querySelector("textarea").focus();
   keys.forEach((el) => {
     if (el.code == keyCode) {
@@ -239,7 +287,7 @@ function solveKeyUp(keyCode, language, keyboardKeys, location) {
 
 function drawTextField(parent) {
   let textField = document.createElement("textarea");
-  textField.setAttribute("cols", "100");
+  textField.setAttribute("cols", "130");
   textField.setAttribute("rows", "10");
   textField.setAttribute("spellcheck", "false");
   // textField.setAttribute("disabled", "true");
@@ -283,6 +331,9 @@ function drawKeyboard(parent, language, inputArea) {
     key.addEventListener("mouseup", (event) =>
       solveMouseUp(event.target.closest(".key"))
     );
+    key.addEventListener("mousemove", (event) => {
+      solveMouseUp(event.target.closest(".key"));
+    });
   });
   parent.append(keyboard);
   return keyboard;
